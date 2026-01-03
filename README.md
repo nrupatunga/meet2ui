@@ -37,6 +37,26 @@ pip install -r requirements.txt
 python main.py
 ```
 
+### Applying Settings to Other Apps (Meet, Zoom, etc.)
+
+Camera settings are saved to `~/.config/meet2ui/presets.json`. To apply your saved settings before using the camera in other apps:
+
+```bash
+# Apply Default preset
+python apply_settings.py
+
+# Apply a specific preset
+python apply_settings.py "MyPreset"
+
+# Apply to a specific device
+python apply_settings.py "Default" /dev/video2
+```
+
+**Tip**: Create a shortcut or alias to run this before video calls:
+```bash
+alias cam-settings="python /path/to/meet2ui/apply_settings.py"
+```
+
 ## Dependencies
 
 - **DearPyGui**: GUI framework

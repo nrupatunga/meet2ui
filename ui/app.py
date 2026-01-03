@@ -223,12 +223,17 @@ class App:
         # Open camera after UI is visible
         self.camera.open()
 
-        # Load initial values from camera
-        for control in CONTROLS:
-            val = self.v4l2.get(control)
-            if val is not None:
-                self.current_values[control] = val
-                update_slider(control, val)
+        # Load and apply saved Default preset
+        saved_defaults = get_preset("Default")
+        if saved_defaults:
+            self._apply_values(saved_defaults)
+        else:
+            # Fall back to reading current values from camera
+            for control in CONTROLS:
+                val = self.v4l2.get(control)
+                if val is not None:
+                    self.current_values[control] = val
+                    update_slider(control, val)
 
         frame_count = 0
         last_fps_time = time.time()
