@@ -95,10 +95,10 @@ class TestWindowDimensions:
         assert PREVIEW_WIDTH < WINDOW_WIDTH
         assert PREVIEW_HEIGHT < WINDOW_HEIGHT
 
-    def test_compact_size(self):
-        """Test window is compact (under 400px wide)."""
-        assert WINDOW_WIDTH <= 400
-        assert WINDOW_HEIGHT <= 400
+    def test_window_size(self):
+        """Test window is 640x480."""
+        assert WINDOW_WIDTH == 640
+        assert WINDOW_HEIGHT == 480
 
 
 class TestTrackingConstants:

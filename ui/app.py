@@ -60,12 +60,12 @@ class App:
                 # PTZ tab
                 with dpg.tab(label="PTZ"):
                     for ctrl in CONTROL_GROUPS["PTZ"]:
-                        create_slider(ctrl, self._on_slider_change, width=180)
+                        create_slider(ctrl, self._on_slider_change, width=500)
 
                 # Image tab
                 with dpg.tab(label="Image"):
                     for ctrl in CONTROL_GROUPS["Image"]:
-                        create_slider(ctrl, self._on_slider_change, width=180)
+                        create_slider(ctrl, self._on_slider_change, width=500)
 
                 # Focus tab
                 with dpg.tab(label="Focus"):
@@ -90,9 +90,9 @@ class App:
             title="Meet2UI",
             width=WINDOW_WIDTH,
             height=WINDOW_HEIGHT,
-            min_width=300,
-            min_height=280,
-            resizable=True,
+            min_width=640,
+            min_height=480,
+            resizable=False,
         )
         dpg.setup_dearpygui()
         dpg.set_primary_window("main", True)

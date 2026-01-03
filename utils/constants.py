@@ -35,10 +35,10 @@ CONTROL_GROUPS = {
 }
 
 # Window dimensions
-WINDOW_WIDTH = 350
-WINDOW_HEIGHT = 320
-PREVIEW_WIDTH = 320
-PREVIEW_HEIGHT = 180
+WINDOW_WIDTH = 640
+WINDOW_HEIGHT = 480
+PREVIEW_WIDTH = 608
+PREVIEW_HEIGHT = 342
 
 # Face tracking
 TRACK_DEADZONE = 30  # pixels from center before tracking kicks in
