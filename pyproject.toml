@@ -32,6 +32,7 @@ select = [
 ]
 ignore = [
     "E501",   # line too long (handled by formatter)
+    "SIM117", # nested with statements (required for DearPyGui context managers)
 ]
 
 [tool.ruff.lint.isort]

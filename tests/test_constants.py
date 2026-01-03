@@ -96,9 +96,18 @@ class TestWindowDimensions:
         assert PREVIEW_HEIGHT < WINDOW_HEIGHT
 
     def test_window_size(self):
-        """Test window is 640x480."""
-        assert WINDOW_WIDTH == 640
-        assert WINDOW_HEIGHT == 480
+        """Test window size is based on side-by-side layout."""
+        from utils.constants import CONTROLS_HEIGHT, CONTROLS_WIDTH
+
+        assert WINDOW_WIDTH == PREVIEW_WIDTH + CONTROLS_WIDTH + 56
+        assert WINDOW_HEIGHT == CONTROLS_HEIGHT + 16
+
+    def test_preview_padding_centers_preview(self):
+        """Test preview padding centers preview vertically in controls height."""
+        from utils.constants import CONTROLS_HEIGHT, PREVIEW_PADDING
+
+        assert PREVIEW_PADDING == (CONTROLS_HEIGHT - PREVIEW_HEIGHT) // 2
+        assert PREVIEW_HEIGHT + 2 * PREVIEW_PADDING == CONTROLS_HEIGHT
 
 
 class TestTrackingConstants:

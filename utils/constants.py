@@ -34,11 +34,18 @@ CONTROL_GROUPS = {
     "Focus": ["focus_automatic_continuous"],
 }
 
-# Window dimensions
-WINDOW_WIDTH = 640
-WINDOW_HEIGHT = 480
-PREVIEW_WIDTH = 608
-PREVIEW_HEIGHT = 342
+# Window dimensions (side-by-side layout: preview left, controls right)
+PREVIEW_WIDTH = 560
+PREVIEW_HEIGHT = 315  # 16:9 aspect ratio
+CONTROLS_WIDTH = 220
+CONTROLS_HEIGHT = 449  # Height needed for all controls + FPS (determines panel height)
+PREVIEW_PADDING = (CONTROLS_HEIGHT - PREVIEW_HEIGHT) // 2  # Center preview vertically
+WINDOW_WIDTH = (
+    PREVIEW_WIDTH + CONTROLS_WIDTH + 56
+)  # preview + controls + padding + borders
+WINDOW_HEIGHT = (
+    CONTROLS_HEIGHT + 16
+)  # controls panel + window padding (8px top + 8px bottom)
 
 # Face tracking
 TRACK_DEADZONE = 30  # pixels from center before tracking kicks in

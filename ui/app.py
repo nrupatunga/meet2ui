@@ -7,15 +7,19 @@ import time
 import dearpygui.dearpygui as dpg
 
 from config.presets import get_preset, list_preset_names, save_preset
-from core.camera import Camera
+from core.camera import Camera, list_devices
 from core.tracker import FaceTracker
 from core.v4l2 import V4L2Control
 from ui.controls import create_button, create_slider, create_toggle, update_slider
 from ui.preview import Preview
-from ui.theme import setup_theme
+from ui.theme import setup_font, setup_theme
 from utils.constants import (
     CONTROL_GROUPS,
     CONTROLS,
+    CONTROLS_HEIGHT,
+    CONTROLS_WIDTH,
+    PREVIEW_PADDING,
+    PREVIEW_WIDTH,
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
 )
@@ -36,62 +40,97 @@ class App:
         """Initialize DearPyGui and create window."""
         dpg.create_context()
         setup_theme()
+        setup_font()
 
         # Main window
         with dpg.window(tag="main", label="Meet2UI", no_resize=False, no_close=True):
-            # Preview
-            self.preview.create()
-            dpg.add_spacer(height=4)
-
-            # Tracking toggle + FPS
+            # Horizontal layout: preview left, controls right
             with dpg.group(horizontal=True):
-                dpg.add_checkbox(
-                    label="Track",
-                    tag="track_toggle",
-                    callback=self._on_track_toggle,
-                )
+                # === LEFT PANEL: Preview (centered vertically) ===
+                with dpg.child_window(
+                    width=PREVIEW_WIDTH + 16,
+                    height=CONTROLS_HEIGHT,
+                    border=True,
+                    no_scrollbar=True,
+                ):
+                    dpg.add_spacer(height=PREVIEW_PADDING)
+                    self.preview.create()
+                    dpg.add_spacer(height=PREVIEW_PADDING)
+
                 dpg.add_spacer(width=8)
-                dpg.add_text("FPS: --", tag="fps_text")
 
-            dpg.add_spacer(height=4)
+                # === RIGHT PANEL: Controls in child window ===
+                with dpg.child_window(
+                    width=CONTROLS_WIDTH,
+                    height=CONTROLS_HEIGHT,
+                    border=True,
+                    no_scrollbar=True,
+                ):
+                    # Camera selector
+                    devices = list_devices()
+                    device_names = [d[1] for d in devices] if devices else ["No camera"]
+                    dpg.add_text("Camera")
+                    dpg.add_combo(
+                        items=device_names,
+                        default_value=device_names[0] if device_names else "",
+                        width=-1,
+                        tag="camera_combo",
+                        callback=self._on_camera_select,
+                    )
+                    dpg.add_spacer(height=4)
 
-            # Tab bar for control groups
-            with dpg.tab_bar():
-                # PTZ tab
-                with dpg.tab(label="PTZ"):
+                    # PTZ Controls section
+                    dpg.add_text("PTZ Controls")
+                    dpg.add_separator()
                     for ctrl in CONTROL_GROUPS["PTZ"]:
-                        create_slider(ctrl, self._on_slider_change, width=500)
+                        create_slider(ctrl, self._on_slider_change, width=120)
+                    dpg.add_spacer(height=4)
 
-                # Image tab
-                with dpg.tab(label="Image"):
+                    # Image section
+                    dpg.add_text("Image")
+                    dpg.add_separator()
                     for ctrl in CONTROL_GROUPS["Image"]:
-                        create_slider(ctrl, self._on_slider_change, width=500)
+                        create_slider(ctrl, self._on_slider_change, width=120)
+                    dpg.add_spacer(height=4)
 
-                # Focus tab
-                with dpg.tab(label="Focus"):
+                    # Focus section
+                    dpg.add_separator()
                     create_toggle("focus_automatic_continuous", self._on_toggle_change)
+                    dpg.add_spacer(height=4)
 
-            dpg.add_spacer(height=4)
+                    # Track toggle
+                    dpg.add_checkbox(
+                        label="Face Track",
+                        tag="track_toggle",
+                        callback=self._on_track_toggle,
+                    )
+                    dpg.add_spacer(height=4)
 
-            # Presets row
-            with dpg.group(horizontal=True):
-                dpg.add_combo(
-                    items=list_preset_names(),
-                    default_value="Default",
-                    width=120,
-                    tag="preset_combo",
-                    callback=self._on_preset_select,
-                )
-                create_button("Save", self._on_save_preset, width=50)
-                create_button("Reset", self._on_reset, width=50)
+                    # Presets section
+                    dpg.add_separator()
+                    dpg.add_text("Presets")
+                    dpg.add_combo(
+                        items=list_preset_names(),
+                        default_value="Default",
+                        width=-1,
+                        tag="preset_combo",
+                        callback=self._on_preset_select,
+                    )
+                    with dpg.group(horizontal=True):
+                        create_button("Save", self._on_save_preset, width=60)
+                        create_button("Reset", self._on_reset, width=60)
+                    dpg.add_spacer(height=4)
+
+                    # FPS display at bottom of controls
+                    dpg.add_text("FPS: --", tag="fps_text")
 
         # Configure viewport
         dpg.create_viewport(
             title="Meet2UI",
             width=WINDOW_WIDTH,
             height=WINDOW_HEIGHT,
-            min_width=640,
-            min_height=480,
+            min_width=WINDOW_WIDTH,
+            min_height=WINDOW_HEIGHT,
             resizable=False,
         )
         dpg.setup_dearpygui()
@@ -113,6 +152,15 @@ class App:
         if not value:
             self.tracker.reset()
 
+    def _on_camera_select(self, sender, camera_name):
+        """Handle camera selection change."""
+        devices = list_devices()
+        for path, name in devices:
+            if name == camera_name:
+                self.camera.set_device(path)
+                self.v4l2.set_device(path)
+                break
+
     def _on_preset_select(self, sender, preset_name):
         """Load selected preset."""
         values = get_preset(preset_name)
@@ -121,7 +169,6 @@ class App:
 
     def _on_save_preset(self):
         """Save current values as preset."""
-        # Simple: overwrite current selection
         name = dpg.get_value("preset_combo")
         save_preset(name, self.current_values.copy())
 
@@ -145,7 +192,6 @@ class App:
             delta = self.tracker.get_pan_tilt_delta(frame)
             if delta:
                 pan_delta, tilt_delta = delta
-                # Get current values and adjust
                 cur_pan = self.current_values.get("pan_absolute", 0)
                 cur_tilt = self.current_values.get("tilt_absolute", 0)
                 new_pan = max(-648000, min(648000, cur_pan + pan_delta))
@@ -165,7 +211,6 @@ class App:
 
     def run(self):
         """Start the application."""
-        # Open camera
         self.camera.open()
 
         # Load initial values from camera
@@ -185,7 +230,6 @@ class App:
             self._update_loop()
             dpg.render_dearpygui_frame()
 
-            # FPS counter
             frame_count += 1
             now = time.time()
             if now - last_fps_time >= 1.0:
