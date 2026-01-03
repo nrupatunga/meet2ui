@@ -25,6 +25,32 @@ class Preview:
         blank[:, :, 3] = 1.0  # Alpha channel
         return blank.flatten()
 
+    def _create_loading_frame(self) -> np.ndarray:
+        """Create frame with 'Loading...' text."""
+        frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        frame[:] = (35, 35, 30)  # Dark background matching theme
+
+        text = "Loading..."
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1.0
+        thickness = 2
+        text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+        text_x = (self.width - text_size[0]) // 2
+        text_y = (self.height + text_size[1]) // 2
+        cv2.putText(
+            frame, text, (text_x, text_y), font, font_scale, (150, 150, 150), thickness
+        )
+
+        # Convert to RGBA float32
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+        frame = frame.astype(np.float32) / 255.0
+        return frame.flatten()
+
+    def show_loading(self):
+        """Display loading message in preview."""
+        loading_frame = self._create_loading_frame()
+        dpg.set_value("preview_texture", loading_frame)
+
     def create(self) -> int:
         """Create the texture and image widget. Returns image widget ID."""
         # Create texture registry if needed

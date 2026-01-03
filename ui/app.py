@@ -211,6 +211,16 @@ class App:
 
     def run(self):
         """Start the application."""
+        # Show UI immediately
+        dpg.show_viewport()
+        self.running = True
+
+        # Render UI with loading message before camera opens
+        self.preview.show_loading()
+        for _ in range(3):
+            dpg.render_dearpygui_frame()
+
+        # Open camera after UI is visible
         self.camera.open()
 
         # Load initial values from camera
@@ -219,9 +229,6 @@ class App:
             if val is not None:
                 self.current_values[control] = val
                 update_slider(control, val)
-
-        dpg.show_viewport()
-        self.running = True
 
         frame_count = 0
         last_fps_time = time.time()
