@@ -93,6 +93,23 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+## Building Standalone Binary
+
+Create a standalone executable using PyInstaller:
+
+```bash
+# Install PyInstaller
+pip install pyinstaller
+
+# Build binary
+pyinstaller --onefile --windowed --name meet2ui --add-data "assets:assets" main.py
+
+# Run the binary
+./dist/meet2ui
+```
+
+The binary will be created at `dist/meet2ui` (~93 MB).
+
 ## License
 
 MIT
